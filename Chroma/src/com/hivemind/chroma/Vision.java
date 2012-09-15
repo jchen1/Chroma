@@ -94,9 +94,9 @@ public class Vision {
     //Converts a byte array from HSL to RGB and stores it in rgb[]
     static public void hsl2rgb(int[] hsl, int[] rgb, int width, int height) {
         for (int i = 0; i < width * height; i++) {
-            double h = ((rgb[i] >> 16) & 0xFF) / 255.0f;
-            double s = ((rgb[i] >> 8)  & 0xFF) / 255.0f;
-            double l = ((rgb[i])       & 0xFF) / 255.0f;
+            double h = ((hsl[i] >> 16) & 0xFF) / 255.0f;
+            double s = ((hsl[i] >> 8)  & 0xFF) / 255.0f;
+            double l = ((hsl[i])       & 0xFF) / 255.0f;
 
             double c = (1 - Math.abs(2.0f * l - 1.0f)) * s;
             double h_ = h * 6.0f;
@@ -106,22 +106,22 @@ public class Vision {
             else if (h_mod2 >= 2.0f) h_mod2 -= 2.0f;
 
             double x = c * (1 - Math.abs(h_mod2 - 1));
-            int r = 0, g = 0, b = 0;
+            double r = 0, g = 0, b = 0;
 
-            if (h_ < 1)         {r = (int) c; g = (int) x; b = 0;}
-            else if (h_ < 2)    {r = (int) x; g = (int) c; b = 0;}
-            else if (h_ < 3)    {r = 0; g = (int) c; b = (int) x;}
-            else if (h_ < 4)    {r = 0; g = (int) x; b = (int) c;}
-            else if (h_ < 5)    {r = (int) x; g = 0; b = (int) c;}
-            else                {r = (int) c; g = 0; b = (int) x;}
+            if (h_ < 1)         {r = c; g = x; b = 0;}
+            else if (h_ < 2)    {r = x; g = c; b = 0;}
+            else if (h_ < 3)    {r = 0; g = c; b = x;}
+            else if (h_ < 4)    {r = 0; g = x; b = c;}
+            else if (h_ < 5)    {r = x; g = 0; b = c;}
+            else                {r = c; g = 0; b = x;}
 
             double m = l - (c / 2);
 
-            r = (int)((r + m) * 255.0f + 0.5);
-            g = (int)((g + m) * 255.0f + 0.5);
-            b = (int)((b + m) * 255.0f + 0.5);
+            r = (r + m) * 255.0f + 0.5;
+            g = (g + m) * 255.0f + 0.5;
+            b = (b + m) * 255.0f + 0.5;
 
-            rgb[i] = 0xFF000000 | ((r & 0xFF) << 16) | ((g & 0xFF) << 8) | (b & 0xFF);
+            rgb[i] = 0xFF000000 | (((int)r & 0xFF) << 16) | (((int)g & 0xFF) << 8) | ((int)b & 0xFF);
         }
     }
 
