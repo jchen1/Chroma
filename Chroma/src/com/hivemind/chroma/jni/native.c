@@ -1,24 +1,26 @@
 #include <jni.h>
 
-#define MAX(x, y) 	return (x > y ? x :  y);
-#define MIN(x, y) 	return (x < y ? x :  y);
-#define ABS(x)		return (x > 0 ? x : -x);
+#define MAX(x, y) 	(x > y ? x :  y)
+#define MIN(x, y) 	(x < y ? x :  y)
+#define ABS(x)		(x > 0 ? x : -x)
+#define NULL 0
 
 JNIEXPORT void JNICALL Java_chroma_CBFilter_filterRedGreen(
 	JNIEnv *env, jobject this, jintArray data, jintArray filtered, jint width, jint height);
 
-void hsl2rgb(int h, int s, int l, int* r, int* g, int*b);
+void hsl2rgb(int h, int s, int l, int* r, int* g, int* b);
 void rgb2hsl(int r, int g, int b, int* h, int* s, int* l);
 
 JNIEXPORT void JNICALL Java_chroma_CBFilter_filterRedGreen(
 	JNIEnv *env, jobject this, jintArray data, jintArray filtered, jint width, jint height)
 {
-	jint *dest_buf = (jint*) ((*env)->GetIntArrayElements(env, NULL));
+	jint *dest_buf = (jint*) ((*env)->GetIntArrayElements(env, filtered, NULL));
 
 	jboolean frame_copy;
 	jint *src_buf = (*env)->GetIntArrayElements(env, data, NULL);
+	int i;
 
-	for (int i = 0; i < width * height; i++)
+	for (i = 0; i < width * height; i++)
 	{
 		int r = (src_buf[i] >> 16) & 0xFF;
         int g = (src_buf[i] >> 8)  & 0xFF;
@@ -26,8 +28,6 @@ JNIEXPORT void JNICALL Java_chroma_CBFilter_filterRedGreen(
         int h = 0, s = 0, l = 0;
 
         rgb2hsl(r, g, b, &h, &s, &l);
-
-        int h = hsl[0], s = hsl[1], l = hsl[2];
 
         if (h >= 120 && h < 140 || h <= 215 && h > 190)
         {
@@ -41,9 +41,9 @@ JNIEXPORT void JNICALL Java_chroma_CBFilter_filterRedGreen(
 
         hsl2rgb(h, s, l, &r, &g, &b);
 
-        dest_buf[i] = (rgb[0] << 16) | (rgb[1] << 8) | (rgb[2]);
+        dest_buf[i] = (r << 16) | (g << 8) | (b);
 	}
-	ReleaseIntArrayElements(env, filtered, dest_buf, 0);
+	(*env)->ReleaseIntArrayElements(env, filtered, dest_buf, 0);
 }
 
 void hsl2rgb(int h, int s, int l, int* r, int* g, int*b)
