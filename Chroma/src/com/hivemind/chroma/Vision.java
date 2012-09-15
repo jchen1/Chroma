@@ -3,6 +3,63 @@ package com.hivemind.chroma;
 //Vision helper library
 public class Vision {
 
+    //Converts HSL value into RGB with fixed-point (fast) math and stores in rgb[]
+    static public void f_hsl2rgb(int h, int s, int l, int[] rgb) {
+        int v = (l < 128) ? (l * (256 + s)) >> 8 : (((l + s) << 8) - l * s) >> 8;
+        if (v <= 0) {
+            rgb[0] = rgb[1] = rgb[2] = 0;
+        }
+        else {
+            int m, sextant, fract, vsf, mid1, mid2;
+            
+            m = l + l - v;
+            h *= 6;
+            sextant = h >> 8;
+            fract = h - (sextant << 8);
+            vsf = v * fract * (v - m) / v >> 8;
+            mid1 = m + vsf;
+            mid2 = v - vsf;
+            switch (sextant) {
+                case 0: rgb[0] = v;     rgb[1] = mid1;  rgb[2] = m;     break;
+                case 1: rgb[0] = mid2;  rgb[1] = v;     rgb[2] = m;     break;
+                case 2: rgb[0] = m;     rgb[1] = v;     rgb[2] = mid1;  break;
+                case 3: rgb[0] = m;     rgb[1] = mid2;  rgb[2] = v;     break;
+                case 4: rgb[0] = mid1;  rgb[1] = m;     rgb[2] = v;     break;
+                case 5: rgb[0] = v;     rgb[1] = m;     rgb[2] = mid2;  break;
+            }
+        }    
+    }
+
+    //Converts RGB value into HSL with fixed-point (fast) math and stores in hsl[]
+    static public void f_rgb2hsl(int r, int g, int b, int[] hsl) {
+        int max = Math.max(r, Math.max(g, b));
+        int min = Math.min(r, Math.min(g, b));
+        
+        int c = max - min;
+        
+        int h_prime = 0;
+        if (c == 0);
+        else if (max == r) {
+            h_prime = ((g - b) << 8) / (c);
+            if (h_prime < 0) h_prime += (6 << 8);
+        }
+        else if (max == g) {
+            h_prime = ((b - r) << 8) / (c);
+            h_prime += (2 << 8);
+        }
+        else if (max == b) {
+            h_prime = ((r - g) << 8) / (c);
+            h_prime += (4 << 8);
+        }
+        hsl[0] = (h_prime / 6) - (1 << 7);
+        hsl[2] = (max + min) >> 1;
+        hsl[1] = 0;
+        if (c != 0) {
+            int divisor = 1 - std::abs(2 * hsl[2] - 1);
+            hsl[1] = (c << 8) / (divisor);
+        }
+    }
+
     //Converts an array from YUV420 into RGB and stores it in rgb[]
 	static public void yuv4202rgb(int[] rgb, byte[] yuv420sp, int width, int height) {
         final int frameSize = width * height;
@@ -56,73 +113,5 @@ public class Vision {
 	        }
 		}
 	}
-
-    //Converts a byte array from RGB to HSL and stores it in hsl[]
-    static public void rgb2hsl(int[] rgb, int[] hsl, int width, int height) {
-        for (int i = 0; i < width * height; i++)
-        {
-            double r = ((rgb[i] >> 16) & 0xFF) / 255.0f;
-            double g = ((rgb[i] >> 8)  & 0xFF) / 255.0f;
-            double b = ((rgb[i])       & 0xFF) / 255.0f;
-
-            double max = Math.max(r, Math.max(g, b));
-            double min = Math.min(r, Math.min(g, b));
-
-            double c = max - min;
-
-            double h = 0.0f, s = 0.0f, l = 0.0f;
-
-            if (c == 0);
-            else if (max == r) {
-                h = (double)(g - b) / c;
-                if (h < 0) h += 6.0f;
-            }
-            else if (max == g) {
-                h = (double)(b - r) / c + 2.0f;
-            }
-            else if (max == b) {
-                h = (double)(r - g) / c + 4.0f;
-            }
-            h /= 6.0f;
-            l = (max + min) / 2;
-            if (c != 0) s = c / (1 - Math.abs(2.0f * l - 1.0f));
-
-            hsl[i] = 0xFF000000 | ((int)(h * 255.0f) << 16) | ((int)(s * 255.0f) << 8) | (int)(l * 255.0f);
-        }
-    }
-
-    //Converts a byte array from HSL to RGB and stores it in rgb[]
-    static public void hsl2rgb(int[] hsl, int[] rgb, int width, int height) {
-        for (int i = 0; i < width * height; i++) {
-            double h = ((hsl[i] >> 16) & 0xFF) / 255.0f;
-            double s = ((hsl[i] >> 8)  & 0xFF) / 255.0f;
-            double l = ((hsl[i])       & 0xFF) / 255.0f;
-
-            double c = (1 - Math.abs(2.0f * l - 1.0f)) * s;
-            double h_ = h * 6.0f;
-            double h_mod2 = h_;
-
-            if (h_mod2 >= 4.0f) h_mod2 -= 4.0f;
-            else if (h_mod2 >= 2.0f) h_mod2 -= 2.0f;
-
-            double x = c * (1 - Math.abs(h_mod2 - 1));
-            double r = 0, g = 0, b = 0;
-
-            if (h_ < 1)         {r = c; g = x; b = 0;}
-            else if (h_ < 2)    {r = x; g = c; b = 0;}
-            else if (h_ < 3)    {r = 0; g = c; b = x;}
-            else if (h_ < 4)    {r = 0; g = x; b = c;}
-            else if (h_ < 5)    {r = x; g = 0; b = c;}
-            else                {r = c; g = 0; b = x;}
-
-            double m = l - (c / 2);
-
-            r = (r + m) * 255.0f + 0.5;
-            g = (g + m) * 255.0f + 0.5;
-            b = (b + m) * 255.0f + 0.5;
-
-            rgb[i] = 0xFF000000 | (((int)r & 0xFF) << 16) | (((int)g & 0xFF) << 8) | ((int)b & 0xFF);
-        }
-    }
 
 }
