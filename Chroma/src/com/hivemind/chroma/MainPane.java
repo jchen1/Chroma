@@ -1,5 +1,5 @@
 package com.hivemind.chroma;
-
+import android.os.Bundle;
 import java.util.Collections;
 import java.util.Comparator;
 
@@ -10,15 +10,28 @@ import android.hardware.Camera.PreviewCallback;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.widget.Toast;
+
+import android.os.Bundle;
+import android.app.Activity;
+import android.view.Menu;
+
+
 
 public class MainPane extends Activity {
 	private SurfaceView surface = null;
 	private SurfaceHolder surfaceHolder = null;
 	private Camera cam = null;
 	private boolean isCameraConfigured = false, showingVideo = false;
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.activity_main_pane, menu);
+        return true;
+    }
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -29,6 +42,8 @@ public class MainPane extends Activity {
         surfaceHolder = surface.getHolder();
         surfaceHolder.addCallback(surfaceCallback);
     }
+    
+
     
     @Override
     public void onResume() {
