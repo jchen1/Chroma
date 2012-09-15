@@ -10,4 +10,5 @@
     <string name="rodmonochromancy">Rod Monochromancy</string>
     <string name="protanopia">Protanopia</string>
     <string name="deuteranopia">Deuteranopia</string>
+    <string name="helpmenutext">this is the help menu</string>
 </resources>

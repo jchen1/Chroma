@@ -12,9 +12,16 @@ import android.hardware.Camera.PreviewCallback;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 
@@ -25,12 +32,27 @@ public class MainPane extends Activity {
 	private Camera cam = null;
 	private boolean isCameraConfigured = false, showingVideo = false;
 
+	
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.activity_main_pane, menu);
         return true;
     }
-	
+    
+   @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+      	 switch (item.getItemId()) {
+    	 case R.id.menu_help:
+    		 Toast.makeText(MainPane.this, "Help menuuuu", Toast.LENGTH_LONG).show();
+    	 return true;
+    	 default:
+    	 return false;
+    	 }
+    	 
+    }
+      
+    
+    
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,6 +61,8 @@ public class MainPane extends Activity {
         surface = (SurfaceView)findViewById(R.id.surface);
         surfaceHolder = surface.getHolder();
         surfaceHolder.addCallback(surfaceCallback);
+        
+       Toast.makeText(MainPane.this, "first toast", Toast.LENGTH_LONG).show();
     }
     
 
