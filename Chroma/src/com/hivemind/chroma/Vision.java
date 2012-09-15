@@ -3,63 +3,6 @@ package com.hivemind.chroma;
 //Vision helper library
 public class Vision {
 
-    //Converts HSL value into RGB with fixed-point (fast) math and stores in rgb[]
-    static public void f_hsl2rgb(int h, int s, int l, int[] rgb) {
-        int v = (l < 128) ? (l * (256 + s)) >> 8 : (((l + s) << 8) - l * s) >> 8;
-        if (v <= 0) {
-            rgb[0] = rgb[1] = rgb[2] = 0;
-        }
-        else {
-            int m, sextant, fract, vsf, mid1, mid2;
-            
-            m = l + l - v;
-            h *= 6;
-            sextant = h >> 8;
-            fract = h - (sextant << 8);
-            vsf = v * fract * (v - m) / v >> 8;
-            mid1 = m + vsf;
-            mid2 = v - vsf;
-            switch (sextant) {
-                case 0: rgb[0] = v;     rgb[1] = mid1;  rgb[2] = m;     break;
-                case 1: rgb[0] = mid2;  rgb[1] = v;     rgb[2] = m;     break;
-                case 2: rgb[0] = m;     rgb[1] = v;     rgb[2] = mid1;  break;
-                case 3: rgb[0] = m;     rgb[1] = mid2;  rgb[2] = v;     break;
-                case 4: rgb[0] = mid1;  rgb[1] = m;     rgb[2] = v;     break;
-                case 5: rgb[0] = v;     rgb[1] = m;     rgb[2] = mid2;  break;
-            }
-        }    
-    }
-
-    //Converts RGB value into HSL with fixed-point (fast) math and stores in hsl[]
-    static public void f_rgb2hsl(int r, int g, int b, int[] hsl) {
-        int max = Math.max(r, Math.max(g, b));
-        int min = Math.min(r, Math.min(g, b));
-        
-        int c = max - min;
-        
-        int h_prime = 0;
-        if (c == 0);
-        else if (max == r) {
-            h_prime = ((g - b) << 8) / (c);
-            if (h_prime < 0) h_prime += (6 << 8);
-        }
-        else if (max == g) {
-            h_prime = ((b - r) << 8) / (c);
-            h_prime += (2 << 8);
-        }
-        else if (max == b) {
-            h_prime = ((r - g) << 8) / (c);
-            h_prime += (4 << 8);
-        }
-        hsl[0] = (h_prime / 6) - (1 << 7);
-        hsl[2] = (max + min) >> 1;
-        hsl[1] = 0;
-        if (c != 0) {
-            int divisor = 1 - std::abs(2 * hsl[2] - 1);
-            hsl[1] = (c << 8) / (divisor);
-        }
-    }
-
     //Converts an array from YUV420 into RGB and stores it in rgb[]
 	static public void yuv4202rgb(int[] rgb, byte[] yuv420sp, int width, int height) {
         final int frameSize = width * height;
