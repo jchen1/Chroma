@@ -1,12 +1,12 @@
 package com.hivemind.chroma;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.ImageFormat;
-import android.graphics.Paint;
 import android.hardware.Camera;
 import android.hardware.Camera.PreviewCallback;
 import android.os.Build;
@@ -99,6 +99,35 @@ public class MainPane extends Activity {
     	
     	super.onPause();
     }
+
+    private Camera.Size getBestPreviewSize(List<Camera.Size> sizes, int width, int height) {
+    	final double ASPECT_TOLERANCE = 0.1;
+    	double targetRatio = (double)width / height;
+    	
+    	Camera.Size bestSize = null;
+    	double minDiff = Double.MAX_VALUE;
+    	
+    	for (Camera.Size s : sizes) {
+    		double ratio = (double)s.width / s.height;
+    		if (Math.abs(targetRatio - ratio) > ASPECT_TOLERANCE)
+    			continue;
+    		if (Math.abs(s.height - height) < minDiff) {
+    			bestSize = s;
+    			minDiff = Math.abs(s.height - height);
+    		}
+    	}
+    	
+    	if (bestSize == null) {
+    		minDiff = Double.MAX_VALUE;
+    		for (Camera.Size s : sizes) {
+    			if (Math.abs(s.height - height) < minDiff) {
+    				bestSize = s;
+    				minDiff = Math.abs(s.height - height);
+    			}
+    		}
+    	}
+    	return bestSize;
+    }
     
     private void initCapture(final int width, final int height) {
     	if (cam != null && surfaceHolder.getSurface() != null) {
@@ -111,22 +140,24 @@ public class MainPane extends Activity {
     		
     		if (!isCameraConfigured) {
     			Camera.Parameters param = cam.getParameters();
-    			Camera.Size maxSize = Collections.max(param.getSupportedPreviewSizes(), new Comparator<Camera.Size>() {
-    				public int compare(Camera.Size s1, Camera.Size s2) {
-    					if (s1.width > width || s1.height > height || s2.width > width || s2.height > height)
-    						return -1;
-    					return s1.width * s1.height - s2.width * s2.height;
-    				}
-    			});
-    			Camera.Size minSize = Collections.min(param.getSupportedPictureSizes(), new Comparator<Camera.Size>() {
-    				public int compare(Camera.Size s1, Camera.Size s2) {
-    					return s1.width * s1.height - s2.width * s2.height;
-    				}
-    			});
+    			Camera.Size maxSize = getBestPreviewSize(param.getSupportedPreviewSizes(), width, height);
+//    			Camera.Size minSize = Collections.max(param.getSupportedPictureSizes(), new Comparator<Camera.Size>() {
+//    				public int compare(Camera.Size s1, Camera.Size s2) {
+//    					if ((s1.width <= height && s1.height <= width) || (s1.width <= width && s1.height <= height)) {
+//    						if ((s2.width <= height && s2.height <= width) || (s2.width <= width && s2.height <= height))
+//    							return s1.width * s1.height - s2.width * s2.height;
+//    						return -1;
+//    					}
+//    					return 1;
+//    				}
+//    			});
+    			
+    			Camera.Size minSize = maxSize;
     			
     			if (maxSize != null && minSize != null) {
     				param.setPreviewSize(maxSize.width, maxSize.height);
-    				param.setPictureSize(minSize.width, minSize.height);
+    				//param.setPictureSize(minSize.width, minSize.height);
+    				cam.setDisplayOrientation(90);
     				param.setPictureFormat(ImageFormat.JPEG);
     				cam.setParameters(param);
     				isCameraConfigured = true;
@@ -144,14 +175,12 @@ public class MainPane extends Activity {
 					int[] rgbData = new int[width * height];
                     int[] filteredData = new int[width * height];
 
-                    Vision.yuv4202rgb(rgbData, data, width, height);
-                    CBFilter.filterRedGreen(rgbData, filteredData, width, height);
+                    Vision.yuv4202rgb(filteredData, data, width, height);
+                    //CBFilter.filterRedGreen(rgbData, filteredData, width, height);
+                    CBSimulator.simDeuteranopia(filteredData, width, height);
                     Bitmap frame = Bitmap.createBitmap(filteredData, width, height, Bitmap.Config.ARGB_8888);
                     if (surfaceHolder.getSurface().isValid()) {
                     	Canvas c = surfaceHolder.lockCanvas();
-                    	Paint redPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-                    	redPaint.setColor(0xFFFF0000);
-                    	//c.drawLine(20, 20, 50, 50, redPaint);
                     	c.drawBitmap(frame, 0, 0, null);
                     	surfaceHolder.unlockCanvasAndPost(c);
                     }
