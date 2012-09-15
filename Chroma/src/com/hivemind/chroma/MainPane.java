@@ -102,13 +102,23 @@ public class MainPane extends Activity {
     	if (cam != null && isCameraConfigured) {
 			cam.setPreviewCallback(new PreviewCallback() {
 				public void onPreviewFrame(byte[] data, Camera camera) {
-					//Data is passed in as YCbCr, format correctly
+                    int width = param.getPreviewSize().width;
+                    int height = param.getPreviewSize().height;
+					int[] rgbData = new int[width * height];
+                    int[] filteredData = new int[width * height];
+
+                    Vision.yuv4202rgb(rgbData, data, width, height);
+                    CBFilter.filterRedGreen(rgbData, filteredData, width, height);
+
+                    //the updated data is now in filteredData in RGB... not sure what to do with it
 				}
 			});
     		cam.startPreview();
     		showingVideo = true;
     	}
     }
+
+
     
     SurfaceHolder.Callback surfaceCallback = new SurfaceHolder.Callback() {
 		
