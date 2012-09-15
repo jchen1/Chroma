@@ -55,6 +55,7 @@ public class MainPane extends Activity {
     	if (showingVideo)
     		cam.stopPreview();
     	
+    	cam.setPreviewCallback(null);
     	cam.release();
     	cam = null;
     	showingVideo = false;
@@ -72,11 +73,6 @@ public class MainPane extends Activity {
     		}
     		
     		if (!isCameraConfigured) {
-    			cam.setPreviewCallback(new PreviewCallback() {
-    				public void onPreviewFrame(byte[] data, Camera camera) {
-    					//Data is passed in as YCbCr, format correctly
-    				}
-    			});
     			Camera.Parameters param = cam.getParameters();
     			Camera.Size maxSize = Collections.max(param.getSupportedPreviewSizes(), new Comparator<Camera.Size>() {
     				public int compare(Camera.Size s1, Camera.Size s2) {
@@ -85,7 +81,7 @@ public class MainPane extends Activity {
     					return s1.width * s1.height - s2.width * s2.height;
     				}
     			});
-    			Camera.Size minSize = Collections.min(param.getSupportedPreviewSizes(), new Comparator<Camera.Size>() {
+    			Camera.Size minSize = Collections.min(param.getSupportedPictureSizes(), new Comparator<Camera.Size>() {
     				public int compare(Camera.Size s1, Camera.Size s2) {
     					return s1.width * s1.height - s2.width * s2.height;
     				}
@@ -104,6 +100,11 @@ public class MainPane extends Activity {
     
     private void startCapture() {
     	if (cam != null && isCameraConfigured) {
+			cam.setPreviewCallback(new PreviewCallback() {
+				public void onPreviewFrame(byte[] data, Camera camera) {
+					//Data is passed in as YCbCr, format correctly
+				}
+			});
     		cam.startPreview();
     		showingVideo = true;
     	}
