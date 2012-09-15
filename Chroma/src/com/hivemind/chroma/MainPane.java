@@ -1,10 +1,12 @@
 package com.hivemind.chroma;
-import android.os.Bundle;
 import java.util.Collections;
 import java.util.Comparator;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.ImageFormat;
+import android.graphics.Paint;
 import android.hardware.Camera;
 import android.hardware.Camera.PreviewCallback;
 import android.os.Build;
@@ -14,10 +16,6 @@ import android.view.Menu;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.widget.Toast;
-
-import android.os.Bundle;
-import android.app.Activity;
-import android.view.Menu;
 
 
 
@@ -80,10 +78,10 @@ public class MainPane extends Activity {
     
     private void initCapture(final int width, final int height) {
     	if (cam != null && surfaceHolder.getSurface() != null) {
-    		try {
-    			cam.setPreviewDisplay(surfaceHolder);
+    		try{
+    			//cam.setPreviewDisplay(surfaceHolder);
     		} catch (Throwable t) {
-    			Log.e("Could not set camera preview display.", "Error", t);
+    			Log.e("setPreviewDisplay failed", "Error", t);
     			Toast.makeText(MainPane.this, t.getMessage(), Toast.LENGTH_LONG).show();
     		}
     		
@@ -117,18 +115,25 @@ public class MainPane extends Activity {
     	if (cam != null && isCameraConfigured) {
 			cam.setPreviewCallback(new PreviewCallback() {
 				public void onPreviewFrame(byte[] data, Camera camera) {
-                    int width = param.getPreviewSize().width;
-                    int height = param.getPreviewSize().height;
+                    int width = camera.getParameters().getPreviewSize().width;
+                    int height = camera.getParameters().getPreviewSize().height;
 					int[] rgbData = new int[width * height];
                     int[] filteredData = new int[width * height];
 
                     Vision.yuv4202rgb(rgbData, data, width, height);
                     CBFilter.filterRedGreen(rgbData, filteredData, width, height);
-
-                    //the updated data is now in filteredData in RGB... not sure what to do with it
+                    Bitmap frame = Bitmap.createBitmap(filteredData, width, height, Bitmap.Config.ARGB_8888);
+                    if (surfaceHolder.getSurface().isValid()) {
+                    	Canvas c = surfaceHolder.lockCanvas();
+                    	Paint redPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+                    	redPaint.setColor(0xFFFF0000);
+                    	//c.drawLine(20, 20, 50, 50, redPaint);
+                    	c.drawBitmap(frame, 0, 0, null);
+                    	surfaceHolder.unlockCanvasAndPost(c);
+                    }
 				}
 			});
-    		cam.startPreview();
+			cam.startPreview();
     		showingVideo = true;
     	}
     }
