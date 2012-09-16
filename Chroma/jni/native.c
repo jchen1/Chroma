@@ -152,12 +152,12 @@ void rgb2hsl(int r, int g, int b, int* h, int* s, int* l)
         h_prime = ((r - g) << 8) / (c);
         h_prime += (4 << 8);
     }
-    *h = (h_prime / 6) - (1 << 7);
+    *h = (h_prime / 6);
     *l = (max + min) >> 1;
     *s = 0;
     if (c != 0)
     {
-        int divisor = ABS(1 - ABS(2 * *l - 1));
+        int divisor = 255 - ABS(2 * *l - 255);
         *s = (divisor == 0 ? 255 : (c << 8) / (divisor));
     }
 
@@ -168,6 +168,5 @@ void rgb2hsl(int r, int g, int b, int* h, int* s, int* l)
 
 void clamp(int* x, int min, int max)
 {
-	if (*x < min) *x = min;
-	if (*x > max) *x = max;
+	*x = MAX(min, MIN(*x, max));
 }
