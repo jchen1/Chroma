@@ -10,83 +10,70 @@ JNIEXPORT void JNICALL Java_com_hivemind_chroma_CBFilter_filterRedGreen(
 
 void hsl2rgb(int h, int s, int l, int* r, int* g, int* b);
 void rgb2hsl(int r, int g, int b, int* h, int* s, int* l);
-
-
-
-int* rgbData;
-int rgbDataSize = 0;
+void clamp(int* x, int min, int max);
 
 JNIEXPORT void JNICALL Java_com_hivemind_chroma_Vision_yuv2rgb(
-		JNIEnv * env, jobject obj, jintArray rgb, jbyteArray yuv420sp, jint width, jint height)
+	JNIEnv *env, jobject this, jintArray rgb, jbyteArray yuv, jint width, jint height)
 {
-    int             sz;
-    int             i;
-    int             j;
-    int             Y;
-    int             Cr = 0;
-    int             Cb = 0;
-    int             pixPtr = 0;
-    int             jDiv2 = 0;
-    int             R = 0;
-    int             G = 0;
-    int             B = 0;
-    int             cOff;
-	int w = width;
-	int h = height;
-    sz = w * h;
+	jint *dest_buf = (*env)->GetIntArrayElements(env, rgb, NULL);
+	jbyte *src_buf = (*env)->GetByteArrayElements(env, yuv, NULL);
 
-	jbyte* yuv = yuv420sp;
-	if(rgbDataSize < sz) {
-		int tmp[sz];
-		rgbData = &tmp[0];
-		rgbDataSize = sz;
+	int j, yp;
+	for (j = 0, yp = 0; j < height; j++)
+	{
+		int uvp = width * height + (j >> 1) * width, u = 0, v = 0;
+		int i;
+		for (i = 0; i < width; i++, yp++)
+		{
+			int y = (0xFF & ((int) src_buf[yp])) - 16;
+			if (y < 0) y = 0;
+			if ((i & 1) == 0)
+			{
+				v = (0xFF & src_buf[uvp++]) - 128;
+				u = (0xFF & src_buf[uvp++]) - 128;
+			}
+			y *= 75;
+
+			int rtmp = y + 102 * v;
+			int gtmp = y - 25 * u - 52 * v;
+			int btmp = y + 129 * u;
+
+			int r = (rtmp >> 6);
+			int g = (gtmp >> 6);
+			int b = (btmp >> 6);
+
+			if (r < 0) r = 0;
+			if (g < 0) g = 0;
+			if (b < 0) b = 0;
+			if (r > 255) r = 255;
+			if (g > 255) g = 255;
+			if (b > 255) b = 255;
+
+			dest_buf[yp] = (0xFF000000) | (r << 16) | (g << 8) | b;
+		}
 	}
-
-	for(j = 0; j < h; j++) {
-             pixPtr = j * w;
-             jDiv2 = j >> 1;
-             for(i = 0; i < w; i++) {
-                     Y = yuv[pixPtr];
-					 if(Y < 0) Y += 255;
-                     if((i & 0x1) != 1) {
-                             cOff = sz + jDiv2 * w + (i >> 1) * 2;
-                             Cb = yuv[cOff];
-                             if(Cb < 0) Cb += 127; else Cb -= 128;
-                             Cr = yuv[cOff + 1];
-                             if(Cr < 0) Cr += 127; else Cr -= 128;
-                     }
-                     R = Y + Cr + (Cr >> 2) + (Cr >> 3) + (Cr >> 5);
-                     if(R < 0) R = 0; else if(R > 255) R = 255;
-                     G = Y - (Cb >> 2) + (Cb >> 4) + (Cb >> 5) - (Cr >> 1) + (Cr >> 3) + (Cr >> 4) + (Cr >> 5);
-                     if(G < 0) G = 0; else if(G > 255) G = 255;
-                     B = Y + Cb + (Cb >> 1) + (Cb >> 2) + (Cb >> 6);
-                     if(B < 0) B = 0; else if(B > 255) B = 255;
-                     rgbData[pixPtr++] = 0xff000000 + (B << 16) + (G << 8) + R;
-             }
-    }
-	(*env)->SetIntArrayRegion(env, rgb, 0, sz, ( jint * ) &rgbData[0] );
+	(*env)->ReleaseIntArrayElements(env, rgb, dest_buf, 0);
+	(*env)->ReleaseByteArrayElements(env, yuv, src_buf, JNI_ABORT); //Not using extreme care
 }
 
 JNIEXPORT void JNICALL Java_com_hivemind_chroma_CBFilter_filterRedGreen(
 	JNIEnv *env, jobject this, jintArray data, jintArray filtered, jint width, jint height)
 {
-	jint *dest_buf = (jint*) ((*env)->GetIntArrayElements(env, filtered, NULL));
-	jint *src_buf = (jint*) ((*env)->GetIntArrayElements(env, data, NULL));
+	jint *dest_buf = (*env)->GetIntArrayElements(env, filtered, NULL);
+	jint *src_buf = (*env)->GetIntArrayElements(env, data, NULL);
 
-	dest_buf = src_buf;
-	/*
 	int i;
-
 	for (i = 0; i < width * height; i++)
 	{
 		int r = (src_buf[i] >> 16) & 0xFF;
-        int g = (src_buf[i] >> 8)  & 0xFF;
-        int b = (src_buf[i])       & 0xFF;
+		int g = (src_buf[i] >> 8) & 0xFF;
+		int b = (src_buf[i]) & 0xFF;
+
         int h = 0, s = 0, l = 0;
 
         rgb2hsl(r, g, b, &h, &s, &l);
 
-        dest_buf[i] = 0xFFFFFF;
+        //dest_buf[i] = 0xFFFFFF;
 
         if (h >= 120 && h < 140 || h <= 215 && h > 190)
         {
@@ -100,11 +87,11 @@ JNIEXPORT void JNICALL Java_com_hivemind_chroma_CBFilter_filterRedGreen(
 
         hsl2rgb(h, s, l, &r, &g, &b);
 
-        dest_buf[i] = (r << 16) | (g << 8) | (b);
-        dest_buf[i] = 0xFFFFFFFF;
-	}*/
+        dest_buf[i] = 0xFF000000 | (r << 16) | (g << 8) | (b);
+        //dest_buf[i] = 0xFFFFFFFF;
+	}
 	(*env)->ReleaseIntArrayElements(env, filtered, dest_buf, 0);
-	(*env)->ReleaseIntArrayElements(env, data, src_buf, 0);
+	(*env)->ReleaseIntArrayElements(env, data, src_buf, JNI_ABORT);
 }
 
 void hsl2rgb(int h, int s, int l, int* r, int* g, int*b)
@@ -134,6 +121,10 @@ void hsl2rgb(int h, int s, int l, int* r, int* g, int*b)
             case 4: *r = mid1; *g = m; *b = v; break;
             case 5: *r = v; *g = m; *b = mid2; break;
         }
+
+        //clamp(r, 0, 255);
+        //clamp(g, 0, 255);
+        //clamp(b, 0, 255);
     }
 }
 
@@ -166,7 +157,17 @@ void rgb2hsl(int r, int g, int b, int* h, int* s, int* l)
     *s = 0;
     if (c != 0)
     {
-        int divisor = 1 - ABS(2 * *l - 1);
-        *s = (c << 8) / (divisor);
+        int divisor = ABS(1 - ABS(2 * *l - 1));
+        *s = (divisor == 0 ? 255 : (c << 8) / (divisor));
     }
+
+    clamp(h, 0, 255);
+    clamp(s, 0, 255);
+    clamp(l, 0, 255);
+}
+
+void clamp(int* x, int min, int max)
+{
+	if (*x < min) *x = min;
+	if (*x > max) *x = max;
 }

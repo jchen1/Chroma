@@ -3,16 +3,11 @@ package com.hivemind.chroma;
 //Vision helper library
 public class Vision {
 
-	static public void rgb5652rgb8888(int[] rgb565, int[] rgb8888, int width, int height) {
-		for (int i = 0; i < width * height; i++)
-		{
-			int x = rgb565[i];
-			int r = (((x) >> 8) & 0xF8) | ((x) >> 13);
-			int g = (((x) >> 3) & 0xFC | (((x) >> 9) & 0x03));
-			int b = (((x) << 3) & 0xF8 | (((x) >> 2) & 0x07));
-			rgb8888[i] = 0xFF000000 | (r << 16) | (g << 8) | b;
-		}
+	static{
+		System.loadLibrary("native");
 	}
+	
+	static public native void yuv2rgb(int[] rgb, byte[] yuv, int width, int height);
     //Converts an array from YUV420 into RGB and stores it in rgb[]
 	static public void yuv4202rgb(int[] rgb, byte[] yuv420sp, int width, int height) {
         final int frameSize = width * height;
@@ -43,7 +38,7 @@ public class Vision {
                 if (g > 255) g = 255;
                 if (b > 255) b = 255;
                 
-                rgb[yp] = 0xFF000000 | ((r << 16) & 0xFF0000) | ((g << 8) & 0xFF00) | (b & 0xFF);
+                rgb[yp] = (0xFF << 24) | (r << 16) | (g << 8) | b;
             }
         }
     }

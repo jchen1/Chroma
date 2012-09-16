@@ -7,4 +7,5 @@ public class CBFilter {
 		System.loadLibrary("native");
 	}
   public static native void filterRedGreen(int[] data, int[] filtered, int width, int height);
+  
 }
