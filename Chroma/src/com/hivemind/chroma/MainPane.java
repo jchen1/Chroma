@@ -31,6 +31,7 @@ public class MainPane extends Activity {
 	private SurfaceHolder surfaceHolder = null;
 	private Camera cam = null;
 	private boolean isCameraConfigured = false, showingVideo = false;
+	public Bitmap frame = null;
 
 	
     @Override
@@ -168,6 +169,9 @@ public class MainPane extends Activity {
     
     private void startCapture() {
     	if (cam != null && isCameraConfigured) {
+    		frame = Bitmap.createBitmap(cam.getParameters().getPreviewSize().width,
+    				cam.getParameters().getPreviewSize().height, Bitmap.Config.ARGB_8888);
+    		
 			cam.setPreviewCallback(new PreviewCallback() {
 				public void onPreviewFrame(byte[] data, Camera camera) {
                     int width = camera.getParameters().getPreviewSize().width;
@@ -176,9 +180,9 @@ public class MainPane extends Activity {
                     int[] filteredData = new int[width * height];
 
                     Vision.yuv4202rgb(filteredData, data, width, height);
-                    //CBFilter.filterRedGreen(rgbData, filteredData, width, height);
-                    CBSimulator.simDeuteranopia(filteredData, width, height);
-                    Bitmap frame = Bitmap.createBitmap(filteredData, width, height, Bitmap.Config.ARGB_8888);
+                    CBFilter.filterRedGreen(rgbData, filteredData, width, height);
+                    //CBSimulator.simDeuteranopia(filteredData, width, height);
+                    frame.setPixels(filteredData, 0, width, 0, 0, width, height);
                     if (surfaceHolder.getSurface().isValid()) {
                     	Canvas c = surfaceHolder.lockCanvas();
                     	c.drawBitmap(frame, 0, 0, null);
