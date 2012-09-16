@@ -243,7 +243,7 @@ public class MainPane extends Activity {
 						CBFilter.filterRedGreen(rgbData,filteredData, width, height);
 						break;
 					case PROTANOPIA:
-						CBFilter.filterRedGreen2(rgbData,filteredData, width, height);
+						CBFilter.filterRedGreenTwo(rgbData,filteredData, width, height);
 						break;
 					case TRITANOPIA:
 						//Toast.makeText(MainPane.this, "Tritanopia Mode", Toast.LENGTH_SHORT).show();
