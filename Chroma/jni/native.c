@@ -10,20 +10,21 @@ JNIEXPORT void JNICALL Java_com_hivemind_chroma_CBFilter_filterRedGreen(
 
 void hsl2rgb(int h, int s, int l, int* r, int* g, int* b);
 void rgb2hsl(int r, int g, int b, int* h, int* s, int* l);
+void clamp(int* x, int min, int max);
 
 
 JNIEXPORT void JNICALL Java_com_hivemind_chroma_CBFilter_filterRedGreen(
-	JNIEnv *env, jobject this, jbyteArray data, jintArray filtered, jint width, jint height)
+	JNIEnv *env, jobject this, jintArray data, jintArray filtered, jint width, jint height)
 {
 	jint *dest_buf = (*env)->GetIntArrayElements(env, filtered, NULL);
-	jbyte *src_buf = (*env)->GetByteArrayElements(env, data, NULL);
+	jint *src_buf = (*env)->GetIntArrayElements(env, data, NULL);
 
 	int i;
 	for (i = 0; i < width * height; i++)
 	{
-		int r = src_buf[i*3];
-		int g = src_buf[i*3 + 1];
-		int b = src_buf[i*3 + 2];
+		int r = (src_buf[i] >> 16) & 0xFF;
+		int g = (src_buf[i] >> 8) & 0xFF;
+		int b = (src_buf[i]) & 0xFF;
 
         int h = 0, s = 0, l = 0;
 
@@ -43,8 +44,8 @@ JNIEXPORT void JNICALL Java_com_hivemind_chroma_CBFilter_filterRedGreen(
 
         hsl2rgb(h, s, l, &r, &g, &b);
 
-        dest_buf[i] = (r << 16) | (g << 8) | (b);
-        dest_buf[i] = 0xFFFFFFFF;
+        dest_buf[i] = 0xFF000000 | (r << 16) | (g << 8) | (b);
+        //dest_buf[i] = 0xFFFFFFFF;
 	}
 	(*env)->ReleaseIntArrayElements(env, filtered, dest_buf, 0);
 	//(*env)->ReleaseIntArrayElements(env, data, src_buf, 0);
@@ -77,6 +78,10 @@ void hsl2rgb(int h, int s, int l, int* r, int* g, int*b)
             case 4: *r = mid1; *g = m; *b = v; break;
             case 5: *r = v; *g = m; *b = mid2; break;
         }
+
+        clamp(r, 0, 255);
+        clamp(g, 0, 255);
+        clamp(b, 0, 255);
     }
 }
 
@@ -112,4 +117,13 @@ void rgb2hsl(int r, int g, int b, int* h, int* s, int* l)
         int divisor = 1 - ABS(2 * *l - 1);
         *s = (divisor == 0 ? 255 : (c << 8) / (divisor));
     }
+
+    clamp(h, 0, 255);
+    clamp(s, 0, 255);
+    clamp(l, 0, 255);
+}
+
+void clamp(int* x, int min, int max)
+{
+	x = MAX(min, MIN(x, max));
 }

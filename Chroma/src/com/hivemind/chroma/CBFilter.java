@@ -6,7 +6,7 @@ public class CBFilter {
 	static{
 		System.loadLibrary("native");
 	}
-  public static native void filterRedGreen(byte[] data, int[] filtered, int width, int height);
+  public static native void filterRedGreen(int[] data, int[] filtered, int width, int height);
   
   	public static void filter(int[] data, int[] filtered, int width, int height)
   	{
@@ -25,11 +25,6 @@ public class CBFilter {
   			
   			rgb2hsl(r, g, b, hsl);
   			
-  			if (h == 0 && s == 0 && l == 0)
-  			{
-  				filtered[i] = 0x0000FF00;
-  				continue;
-  			}
   			
   			h = hsl[0]; s = hsl[1]; l = hsl[2];
   			
@@ -45,7 +40,7 @@ public class CBFilter {
 
   	        hsl2rgb(h, s, l, rgb);
 
-  	        filtered[i] = (rgb[0] << 16) | (rgb[1] << 8) | (rgb[2]);
+  	        filtered[i] = (0xFF000000) | (rgb[0] << 16) | (rgb[1] << 8) | (rgb[2]);
   	        //filtered[i] = 0xFFFFFFFF;
   			
   		}
@@ -83,6 +78,10 @@ public class CBFilter {
   	        int divisor = 1 - Math.abs(2 * hsl[2] - 1);
   	        hsl[1] = (divisor == 0 ? 255 : (c << 8) / (divisor));
   	    }
+  	    
+  	    hsl[0] = clamp(hsl[0], 0, 255);
+  	    hsl[1] = clamp(hsl[1], 0, 255);
+  	    hsl[2] = clamp(hsl[2], 0, 255);
   	}
   	
   	private static void hsl2rgb(int h, int s, int l, int[] rgb)
@@ -113,5 +112,14 @@ public class CBFilter {
   	            case 5: rgb[0] = v; rgb[1] = m; rgb[2] = mid2; break;
   	        }
   	    }
+  	    
+  	    rgb[0] = clamp(rgb[0], 0, 255);
+  	    rgb[1] = clamp(rgb[1], 0, 255);
+  	    rgb[2] = clamp(rgb[2], 0, 255);
+  	}
+  	
+  	private static int clamp(int x, int min, int max)
+  	{
+  		return Math.max(min, Math.min(x, max));
   	}
 }
