@@ -12,6 +12,7 @@ void hsl2rgb(int h, int s, int l, int* r, int* g, int* b);
 void rgb2hsl(int r, int g, int b, int* h, int* s, int* l);
 void clamp(int* x, int min, int max);
 void hueshift(int* r, int* g, int* b, int shift);
+int get_h(int r, int g, int b);
 
 JNIEXPORT void JNICALL Java_com_hivemind_chroma_Vision_yuv2rgb(
 	JNIEnv *env, jobject this, jintArray rgb, jbyteArray yuv, jint width, jint height)
@@ -70,11 +71,23 @@ JNIEXPORT void JNICALL Java_com_hivemind_chroma_CBFilter_filterRedGreen(
 		int g = (src_buf[i] >> 8) & 0xFF;
 		int b = (src_buf[i]) & 0xFF;
 
-        int hue = get_h(r, g, b);
+        //f_rgb2hsl(r, g, b, &h, &s, &l);
+        int h = get_h(r, g, b);
+        int difference = MIN(ABS(206 - h), ABS(-50 - h));
+        int h_new = (206 - difference * 185 / 256) % 256;
+        int shift = h_new - h;
+        //h = h_new;
 
-        int difference = MIN(ABS(290 - hue), ABS(-70 - hue));
-        int hue_ = (290 - difference * 185 / 256) % 256;
-        hueshift(&r, &g, &b, hue_ - hue);
+        //int r_ = 0, g_ = 0, b_ = 0;
+        //r_ = r, g_ = g, b_ = b;
+        hueshift(&r, &g, &b, -1*360*(h_new - h) / 256);
+
+        if (r < 0)   r = 0;
+        if (g < 0)   g = 0;
+        if (b < 0)   b = 0;
+        if (r > 255) r = 255;
+        if (g > 255) g = 255;
+        if (b > 255) b = 255;
         /*
 
 
@@ -144,15 +157,15 @@ void hueshift(int* r, int* g, int* b, int shift)
     float U = cos(shift * 3.14159265 / 180);
     float W = sin(shift * 3.14159265 / 180);
 
-    int r_ = (.701*U+.168*W)* *r
-    + (-.587*U+.330*W)* *g
-    + (-.114*U-.497*W)* *b;
-    int g_ = (-.299*U-.328*W)* *r
-    + (.413*U+.035*W)* *g
-    + (-.114*U+.292*W)* *b;
-    int b_ = (-.3*U+1.25*W)* *r
-    + (-.588*U-1.05*W)* *g
-    + (.886*U-.203*W)* *b;
+    int r_ = (.299+.701*U+.168*W)* *r
+    + (.587-.587*U+.330*W)* *g
+    + (.114-.114*U-.497*W)* *b;
+    int g_ = (.299-.299*U-.328*W)* *r
+    + (.587+.413*U+.035*W)* *g
+    + (.114-.114*U+.292*W)* *b;
+    int b_ = (.299-.3*U+1.25*W)* *r
+    + (.587-.588*U-1.05*W)* *g
+    + (.114+.886*U-.203*W)* *b;
 
     *r = r_; *g = g_; *b = b_;
 }
