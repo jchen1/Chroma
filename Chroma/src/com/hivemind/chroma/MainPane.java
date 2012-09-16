@@ -124,11 +124,6 @@ public class MainPane extends Activity {
 		case R.id.protanopia:
 			current_filter = PROTANOPIA;
 			break;
-		case R.id.tritanopia:
-			//makes filter tritanopia/normal
-			current_filter = TRITANOPIA;
-			//Toast.makeText(MainPane.this, "Tritanopia Mode", Toast.LENGTH_SHORT).show();
-			break;
 		default:
 			return false;
 		}
@@ -244,9 +239,6 @@ public class MainPane extends Activity {
 						break;
 					case PROTANOPIA:
 						CBFilter.filterRedGreenTwo(rgbData,filteredData, width, height);
-						break;
-					case TRITANOPIA:
-						//Toast.makeText(MainPane.this, "Tritanopia Mode", Toast.LENGTH_SHORT).show();
 						break;
 					default:
 						//Toast.makeText(MainPane.this, "normal filter on", Toast.LENGTH_SHORT).show();
