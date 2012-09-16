@@ -15,10 +15,12 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,7 +31,12 @@ public class MainPane extends Activity {
 	private Camera cam = null;
 	private boolean isCameraConfigured = false, showingVideo = false;
 	public Bitmap frame = null;
-	
+	public int current_filter = 1; //1.2 is deuter/norm 3.4 is tri/norm
+	public final int DEUTERANOPIA = 1;
+	public final int DEUTERANOPIA_NORM = 2;
+	public final int TRITANOPIA = 3;
+	public final int TRITANOPIA_NORM = 4;
+	public boolean filterOn = true;
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -46,7 +53,40 @@ public class MainPane extends Activity {
 		surfaceHolder = surface.getHolder();
 		surfaceHolder.addCallback(surfaceCallback);
 
-		Toast.makeText(MainPane.this, "Loading...", Toast.LENGTH_SHORT).show();
+		//	LinearLayout searchByNumber = getView(R.id.textview, LinearLayout.class);
+		//   searchByNumber.setOnTouchListener(new OnTouchListener() {
+		//	{
+		//	@Override
+		//	public boolean onTouch(View v, MotionEvent event) {
+		//		textView.setText("Touch coordinates : " +
+		//				String.valueOf(event.getX()) + "x" + String.valueOf(event.getY()));
+		//		return true;
+		//	}
+		//	}
+	}
+
+	@Override
+	public boolean dispatchTouchEvent(MotionEvent event){
+		//Toast.makeText(MainPane.this, "tap works!!!", Toast.LENGTH_SHORT).show();
+		switch(current_filter){
+		case 1:
+			current_filter= DEUTERANOPIA_NORM;
+			break;
+		case 2:
+			current_filter= DEUTERANOPIA;
+			break;
+		case 3:
+			current_filter= TRITANOPIA_NORM;
+			break;
+		case 4:
+			current_filter= TRITANOPIA;
+			break;
+		default:
+			break;
+		}
+
+		//super.dispatchTouchEvent(event);
+		return false;
 	}
 
 	@Override
@@ -74,6 +114,16 @@ public class MainPane extends Activity {
 			text2.setText("Version 1.0 \n\nDesigned to aid color-blind persons differentiate between similarly-perceived colors.\n\nCreated by Jeff Chen, Rolando Schneiderman, Cary Yang, and Emily Yeh for PennApps 2012.");
 			dialog.setCanceledOnTouchOutside(true);
 			dialog.show();
+			break;
+		case R.id.deuteranopia:
+			//makes filter deuteranopia/normal
+			current_filter = DEUTERANOPIA;
+			//Toast.makeText(MainPane.this, "deut menu works!!!", Toast.LENGTH_SHORT).show();
+			break;
+		case R.id.tritanopia:
+			//makes filter tritanopia/normal
+			current_filter = TRITANOPIA;
+			//Toast.makeText(MainPane.this, "trit menu works!!!", Toast.LENGTH_SHORT).show();
 			break;
 		default:
 			return false;
@@ -142,54 +192,65 @@ public class MainPane extends Activity {
 		}
 		return bestSize;
 	}
-    
-    private void initCapture(final int width, final int height) {
-    	if (cam != null && surfaceHolder.getSurface() != null) {
-    		try{
-    			//cam.setPreviewDisplay(surfaceHolder);
-    		} catch (Throwable t) {
-    			Log.e("setPreviewDisplay failed", "Error", t);
-    			Toast.makeText(MainPane.this, t.getMessage(), Toast.LENGTH_LONG).show();
-    		}
-    		
-    		if (!isCameraConfigured) {
-    			Camera.Parameters param = cam.getParameters();
-    			Camera.Size maxSize = getBestPreviewSize(param.getSupportedPreviewSizes(), width, height);
-    			
-    			Camera.Size minSize = maxSize;
-    			
-    			if (maxSize != null && minSize != null) {
-    				param.setPreviewSize(maxSize.width, maxSize.height);
-    				cam.setParameters(param);
-    				isCameraConfigured = true;
-    			}
-    		}
-    	}
-    }
-    
-    private void startCapture() {
-    	if (cam != null && isCameraConfigured) {
-    		frame = Bitmap.createBitmap(cam.getParameters().getPreviewSize().width,
-    				cam.getParameters().getPreviewSize().height, Bitmap.Config.ARGB_8888);
-    		surfaceHolder.setFormat(PixelFormat.RGBA_8888 | PixelFormat.OPAQUE);
+
+	private void initCapture(final int width, final int height) {
+		if (cam != null && surfaceHolder.getSurface() != null) {
+			try{
+				//cam.setPreviewDisplay(surfaceHolder);
+			} catch (Throwable t) {
+				Log.e("setPreviewDisplay failed", "Error", t);
+				Toast.makeText(MainPane.this, t.getMessage(), Toast.LENGTH_LONG).show();
+			}
+
+			if (!isCameraConfigured) {
+				Camera.Parameters param = cam.getParameters();
+				Camera.Size maxSize = getBestPreviewSize(param.getSupportedPreviewSizes(), width, height);
+
+				Camera.Size minSize = maxSize;
+
+				if (maxSize != null && minSize != null) {
+					param.setPreviewSize(maxSize.width, maxSize.height);
+					cam.setParameters(param);
+					isCameraConfigured = true;
+				}
+			}
+		}
+	}
+
+	private void startCapture() {
+		if (cam != null && isCameraConfigured) {
+			frame = Bitmap.createBitmap(cam.getParameters().getPreviewSize().width,
+					cam.getParameters().getPreviewSize().height, Bitmap.Config.ARGB_8888);
+			surfaceHolder.setFormat(PixelFormat.RGBA_8888 | PixelFormat.OPAQUE);
 			cam.setPreviewCallback(new PreviewCallback() {
 				public void onPreviewFrame(byte[] data, Camera camera) {
 					int width = camera.getParameters().getPreviewSize().width;
 					int height = camera.getParameters().getPreviewSize().height;
 					int[] rgbData = new int[width * height];
-                    int[] filteredData = new int[width * height];
+					int[] filteredData = new int[width * height];
 
-                    Vision.yuv2rgb(rgbData, data, width, height);
-                    //CBFilter.filter(rgbData, filteredData, width, height);
-                    //Toast.makeText(MainPane.this, "filtered", Toast.LENGTH_LONG).show();
-                    CBFilter.filterRedGreen(rgbData,filteredData, width, height );
-                    //CBSimulator.simDeuteranopia(filteredData, width, height);
-                    frame.setPixels(filteredData, 0, width, 0, 0, width, height);
-                    if (surfaceHolder.getSurface().isValid()) {
-                    	Canvas c = surfaceHolder.lockCanvas();
-                    	c.drawBitmap(frame, 0, 0, null);
-                    	surfaceHolder.unlockCanvasAndPost(c);
-                    }
+					Vision.yuv2rgb(rgbData, data, width, height);
+					//CBFilter.filter(rgbData, filteredData, width, height);
+					//Toast.makeText(MainPane.this, "filtered", Toast.LENGTH_LONG).show();
+
+					switch(current_filter){
+					case DEUTERANOPIA:
+						Toast.makeText(MainPane.this, "deut on", Toast.LENGTH_SHORT).show();
+						CBFilter.filterRedGreen(rgbData,filteredData, width, height);
+						break;
+					case TRITANOPIA:
+						Toast.makeText(MainPane.this, "tri on", Toast.LENGTH_SHORT).show();
+						break;
+					default:
+						filteredData = rgbData;
+					}
+					//CBSimulator.simDeuteranopia(filteredData, width, height);
+					frame.setPixels(filteredData, 0, width, 0, 0, width, height);
+					if (surfaceHolder.getSurface().isValid()) {
+						Canvas c = surfaceHolder.lockCanvas();
+						c.drawBitmap(frame, 0, 0, null);
+						surfaceHolder.unlockCanvasAndPost(c);
+					}
 				}
 			});
 			cam.startPreview();
