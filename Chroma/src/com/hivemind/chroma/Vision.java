@@ -55,7 +55,7 @@ public class Vision {
         hsl[2] = (max + min) >> 1;
         hsl[1] = 0;
         if (c != 0) {
-            int divisor = 1 - std::abs(2 * hsl[2] - 1);
+            int divisor = 1 - Math.abs(2 * hsl[2] - 1);
             hsl[1] = (c << 8) / (divisor);
         }
     }

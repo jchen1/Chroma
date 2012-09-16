@@ -56,11 +56,12 @@ public class MainPane extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
         setContentView(R.layout.activity_main_pane);
         
-        surface = (SurfaceView)findViewById(R.id.surface);
-        surfaceHolder = surface.getHolder();
-        surfaceHolder.addCallback(surfaceCallback);
+        //surface = (SurfaceView)findViewById(R.id.surface);
+        //surfaceHolder = surface.getHolder();
+        //surfaceHolder.addCallback(surfaceCallback);
         
        Toast.makeText(MainPane.this, "first toast", Toast.LENGTH_LONG).show();
     }
