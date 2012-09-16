@@ -4,15 +4,23 @@
   android:layout_width="match_parent"
   android:layout_height="match_parent">
     <SurfaceView android:id="@+id/surface" android:layout_width="wrap_content" android:layout_height="wrap_content"></SurfaceView>
-    <RelativeLayout android:id="@+id/linearLayout1" android:layout_width="fill_parent" android:layout_height="fill_parent" android:gravity="bottom">
-        <Button android:id="@+id/capture_button"
-android:text="TAKE A FUCKING PICTURE FUCK"
-android:layout_width="fill_parent"
-android:layout_height="wrap_content"
-android:layout_alignParentBottom="true"
-android:layout_marginBottom="10dp"
-android:background="@drawable/capture_button"
-></Button>
+
+    <RelativeLayout
+        android:id="@+id/linearLayout1"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:gravity="right" >
+
+        <Button
+            android:id="@+id/capture_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_marginBottom="10dp"
+            android:background="@drawable/capture_button"
+            android:text="" >
+
+</Button>
     </RelativeLayout>
 </FrameLayout>
 
