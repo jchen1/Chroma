@@ -12,7 +12,8 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" >
-        <activity android:name=".MainPane" android:label="@string/title_activity_main_pane" android:hardwareAccelerated="true">
+        <activity android:name=".MainPane" android:label="@string/title_activity_main_pane" android:hardwareAccelerated="true"
+            android:screenOrientation="landscape" android:theme="@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>

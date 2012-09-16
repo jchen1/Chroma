@@ -14,8 +14,11 @@
                 <item android:id="@+id/protanopia"
                     android:title="@string/protanopia"/>
                 <item android:id="@+id/deuteranopia"
-                android:title="@string/deuteranopia" />
+               		android:title="@string/deuteranopia" />
                 </group>
                 </menu>
                 </item>
+   <item android:id="@+id/menu_about"
+       android:title="@string/menu_about">
+       </item>
 </menu>
