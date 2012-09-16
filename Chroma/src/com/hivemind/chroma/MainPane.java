@@ -4,6 +4,9 @@ import java.util.Comparator;
 import java.util.List;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.ImageFormat;
@@ -39,10 +42,21 @@ public class MainPane extends Activity {
 	}
 
 	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_main_pane);
+
+		surface = (SurfaceView)findViewById(R.id.surface);
+		surfaceHolder = surface.getHolder();
+		surfaceHolder.addCallback(surfaceCallback);
+
+		Toast.makeText(MainPane.this, "Loading...", Toast.LENGTH_SHORT).show();
+	}
+
+	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.menu_help:
-			//Toast.makeText(MainPane.this, "Help menuuuu", Toast.LENGTH_LONG).show();
 			LayoutInflater inflater = getLayoutInflater();
 			View layout = inflater.inflate(R.layout.toast_layout,
 					(ViewGroup) findViewById(R.id.toast_layout_root));
@@ -52,31 +66,26 @@ public class MainPane extends Activity {
 	
 			Toast toast = new Toast(getApplicationContext());
 			toast.setGravity(Gravity.CENTER|Gravity.FILL_HORIZONTAL, 0, 0);
-			toast.setDuration(Toast.LENGTH_SHORT);
+			toast.setDuration(Toast.LENGTH_LONG);
 			toast.setView(layout);
 			toast.show();
+			break;
+		case R.id.menu_about:
+			Dialog dialog = new Dialog(MainPane.this);
+
+			dialog.setContentView(R.layout.custom_dialog);
+			dialog.setTitle("About Chroma");
+
+			TextView text2 = (TextView) dialog.findViewById(R.id.text2);
+			text2.setText("Version 1.0 \n\nDesigned to aid color-blind persons differentiate between similarly-perceived colors.\n\nCreated by Jeff Chen, Rolando Schneiderman, Cary Yang, and Emily Yeh for PennApps 2012.");
+			dialog.setCanceledOnTouchOutside(true);
+			dialog.show();
 			break;
 		default:
 			return false;
 		}
 		return true;
 	}
-
-
-
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main_pane);
-
-		surface = (SurfaceView)findViewById(R.id.surface);
-		surfaceHolder = surface.getHolder();
-		surfaceHolder.addCallback(surfaceCallback);
-
-		Toast.makeText(MainPane.this, "Loading...", Toast.LENGTH_LONG).show();
-	}
-
-
 
 	@Override
 	public void onResume() {
