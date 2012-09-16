@@ -182,7 +182,7 @@ public class MainPane extends Activity {
                     Vision.yuv2rgb(rgbData, data, width, height);
                     //CBFilter.filter(rgbData, filteredData, width, height);
                     //Toast.makeText(MainPane.this, "filtered", Toast.LENGTH_LONG).show();
-                    CBFilter.filterRedGreen(rgbData, filteredData, width, height);
+                    CBFilter.filterRedGreen(rgbData,filteredData, width, height );
                     //CBSimulator.simDeuteranopia(filteredData, width, height);
                     frame.setPixels(filteredData, 0, width, 0, 0, width, height);
                     if (surfaceHolder.getSurface().isValid()) {

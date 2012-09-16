@@ -1,9 +1,9 @@
 #include <jni.h>
+#include <math.h>
 
 #define MAX(x, y) 	(x > y ? x :  y)
 #define MIN(x, y) 	(x < y ? x :  y)
 #define ABS(x)		(x > 0 ? x : -x)
-#define NULL 0
 
 JNIEXPORT void JNICALL Java_com_hivemind_chroma_CBFilter_filterRedGreen(
 	JNIEnv *env, jobject this, jintArray data, jintArray filtered, jint width, jint height);
@@ -11,6 +11,7 @@ JNIEXPORT void JNICALL Java_com_hivemind_chroma_CBFilter_filterRedGreen(
 void hsl2rgb(int h, int s, int l, int* r, int* g, int* b);
 void rgb2hsl(int r, int g, int b, int* h, int* s, int* l);
 void clamp(int* x, int min, int max);
+void hueshift(int* r, int* g, int* b, int shift);
 
 JNIEXPORT void JNICALL Java_com_hivemind_chroma_Vision_yuv2rgb(
 	JNIEnv *env, jobject this, jintArray rgb, jbyteArray yuv, jint width, jint height)
@@ -69,12 +70,20 @@ JNIEXPORT void JNICALL Java_com_hivemind_chroma_CBFilter_filterRedGreen(
 		int g = (src_buf[i] >> 8) & 0xFF;
 		int b = (src_buf[i]) & 0xFF;
 
+        int hue = get_h(r, g, b);
+
+        int difference = MIN(ABS(290 - hue), ABS(-70 - hue));
+        int hue_ = (290 - difference * 185 / 256) % 256;
+        hueshift(&r, &g, &b, hue_ - hue);
+        /*
+
+
         int h = 0, s = 0, l = 0;
 
         rgb2hsl(r, g, b, &h, &s, &l);
 
         //dest_buf[i] = 0xFFFFFF;
-
+        
         if (h >= 120 && h < 140 || h <= 215 && h > 190)
         {
             s *= (0.000000410256 * h * h * h * h - 0.000274872 * h * h * h + 0.0685359 * h * h - 7.53578 * h + 308.285);
@@ -85,7 +94,9 @@ JNIEXPORT void JNICALL Java_com_hivemind_chroma_CBFilter_filterRedGreen(
         //Shift most green up to where blue used to be
         if (h > 42 && h < 120) h += 70; 
 
-        hsl2rgb(h, s, l, &r, &g, &b);
+
+
+        hsl2rgb(h, s, l, &r, &g, &b);*/
 
         dest_buf[i] = 0xFF000000 | (r << 16) | (g << 8) | (b);
         //dest_buf[i] = 0xFFFFFFFF;
@@ -126,6 +137,51 @@ void hsl2rgb(int h, int s, int l, int* r, int* g, int*b)
         //clamp(g, 0, 255);
         //clamp(b, 0, 255);
     }
+}
+
+void hueshift(int* r, int* g, int* b, int shift)
+{
+    float U = cos(shift * 3.14159265 / 180);
+    float W = sin(shift * 3.14159265 / 180);
+
+    int r_ = (.701*U+.168*W)* *r
+    + (-.587*U+.330*W)* *g
+    + (-.114*U-.497*W)* *b;
+    int g_ = (-.299*U-.328*W)* *r
+    + (.413*U+.035*W)* *g
+    + (-.114*U+.292*W)* *b;
+    int b_ = (-.3*U+1.25*W)* *r
+    + (-.588*U-1.05*W)* *g
+    + (.886*U-.203*W)* *b;
+
+    *r = r_; *g = g_; *b = b_;
+}
+
+int get_h(int r, int g, int b)
+{
+	int max = MAX(r, MAX(g, b));
+    int min = MIN(r, MIN(g, b));
+
+    int c = max - min;
+
+    int h_prime = 0;
+    if (c == 0);
+    else if (max == r)
+    {
+        h_prime = ((g - b) << 8) / (c);
+        if (h_prime < 0) h_prime += (6 << 8);
+    }
+    else if (max == g)
+    {
+        h_prime = ((b - r) << 8) / (c);
+        h_prime += (2 << 8);
+    }
+    else if (max == b)
+    {
+        h_prime = ((r - g) << 8) / (c);
+        h_prime += (4 << 8);
+    }
+    return (h_prime / 6);
 }
 
 void rgb2hsl(int r, int g, int b, int* h, int* s, int* l)
