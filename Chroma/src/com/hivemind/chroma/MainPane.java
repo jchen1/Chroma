@@ -31,8 +31,7 @@ public class MainPane extends Activity {
 	private SurfaceHolder surfaceHolder = null;
 	private Camera cam = null;
 	private boolean isCameraConfigured = false, showingVideo = false;
-
-
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.activity_main_pane, menu);
@@ -74,7 +73,7 @@ public class MainPane extends Activity {
 		surfaceHolder = surface.getHolder();
 		surfaceHolder.addCallback(surfaceCallback);
 
-		Toast.makeText(MainPane.this, "first toast", Toast.LENGTH_LONG).show();
+		Toast.makeText(MainPane.this, "Loading...", Toast.LENGTH_LONG).show();
 	}
 
 
