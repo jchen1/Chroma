@@ -42,9 +42,12 @@ JNIEXPORT void JNICALL Java_com_hivemind_chroma_Vision_yuv2rgb(
 			int g = (gtmp >> 6);
 			int b = (btmp >> 6);
 
-			clamp(&r, 0, 255);
-			clamp(&g, 0, 255);
-			clamp(&b, 0, 255);
+			if (r < 0) r = 0;
+			if (g < 0) g = 0;
+			if (b < 0) b = 0;
+			if (r > 255) r = 255;
+			if (g > 255) g = 255;
+			if (b > 255) b = 255;
 
 			dest_buf[yp] = (0xFF000000) | (r << 16) | (g << 8) | b;
 		}
@@ -119,9 +122,9 @@ void hsl2rgb(int h, int s, int l, int* r, int* g, int*b)
             case 5: *r = v; *g = m; *b = mid2; break;
         }
 
-        clamp(r, 0, 255);
-        clamp(g, 0, 255);
-        clamp(b, 0, 255);
+        //clamp(r, 0, 255);
+        //clamp(g, 0, 255);
+        //clamp(b, 0, 255);
     }
 }
 
@@ -154,7 +157,7 @@ void rgb2hsl(int r, int g, int b, int* h, int* s, int* l)
     *s = 0;
     if (c != 0)
     {
-        int divisor = 1 - ABS(2 * *l - 1);
+        int divisor = ABS(1 - ABS(2 * *l - 1));
         *s = (divisor == 0 ? 255 : (c << 8) / (divisor));
     }
 
@@ -165,5 +168,6 @@ void rgb2hsl(int r, int g, int b, int* h, int* s, int* l)
 
 void clamp(int* x, int min, int max)
 {
-	*x = MAX(min, MIN(*x, max));
+	if (*x < min) *x = min;
+	if (*x > max) *x = max;
 }
