@@ -7,7 +7,7 @@
     <string name="title_activity_settings_pane">Settings</string>
     <string name="title_activity_main_pane">Chroma</string>
     <string name="conemonochromancy">Cone Mono Chromancy</string>
-    <string name="rodmonochromancy">Rod Monochromancy</string>
+    <string name="protanopia">Protanopia</string>
     <string name="tritanopia ">Tritanopia </string>
     <string name="deuteranopia">Deuteranopia</string>
     <string name="helpmenutext">this is the help menu</string>

@@ -35,6 +35,8 @@ public class MainPane extends Activity {
 	public final int DEUTERANOPIA_NORM = 2;
 	public final int TRITANOPIA = 3;
 	public final int TRITANOPIA_NORM = 4;
+	public final int PROTANOPIA = 5;
+	public final int PROTANOPIA_NORM = 6;
 	public boolean filterOn = true;
 
 	@Override
@@ -52,16 +54,6 @@ public class MainPane extends Activity {
 		surfaceHolder = surface.getHolder();
 		surfaceHolder.addCallback(surfaceCallback);
 
-		//	LinearLayout searchByNumber = getView(R.id.textview, LinearLayout.class);
-		//   searchByNumber.setOnTouchListener(new OnTouchListener() {
-		//	{
-		//	@Override
-		//	public boolean onTouch(View v, MotionEvent event) {
-		//		textView.setText("Touch coordinates : " +
-		//				String.valueOf(event.getX()) + "x" + String.valueOf(event.getY()));
-		//		return true;
-		//	}
-		//	}
 	}
 
 	@Override
@@ -83,6 +75,12 @@ public class MainPane extends Activity {
 			case 4:
 				current_filter= TRITANOPIA;
 				//Toast.makeText(MainPane.this, "Tritanopia Filter On", Toast.LENGTH_SHORT).show();
+				break;
+			case 5:
+				current_filter= PROTANOPIA_NORM;
+				break;
+			case 6:
+				current_filter=PROTANOPIA;
 				break;
 			default:
 				return false;
@@ -122,6 +120,9 @@ public class MainPane extends Activity {
 			//makes filter deuteranopia/normal
 			current_filter = DEUTERANOPIA;
 			//Toast.makeText(MainPane.this, "Deuteranopia Mode", Toast.LENGTH_SHORT).show();
+			break;
+		case R.id.protanopia:
+			current_filter = PROTANOPIA;
 			break;
 		case R.id.tritanopia:
 			//makes filter tritanopia/normal
@@ -240,6 +241,9 @@ public class MainPane extends Activity {
 					case DEUTERANOPIA:
 						//Toast.makeText(MainPane.this, "Deuteranopia Mode", Toast.LENGTH_SHORT).show();
 						CBFilter.filterRedGreen(rgbData,filteredData, width, height);
+						break;
+					case PROTANOPIA:
+						CBFilter.filterRedGreen2(rgbData,filteredData, width, height);
 						break;
 					case TRITANOPIA:
 						//Toast.makeText(MainPane.this, "Tritanopia Mode", Toast.LENGTH_SHORT).show();

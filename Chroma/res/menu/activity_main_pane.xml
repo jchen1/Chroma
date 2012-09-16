@@ -9,6 +9,8 @@
        	     <group android:checkableBehavior="single">
                 <item android:id="@+id/deuteranopia"
                		android:title="@string/deuteranopia" />
+                <item android:id="@+id/protanopia"
+                    android:title="@string/protanopia" />
                 <item android:id="@+id/tritanopia " 
                     android:title="@string/tritanopia "/>
                 </group>

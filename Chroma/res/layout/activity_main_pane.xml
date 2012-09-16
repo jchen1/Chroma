@@ -10,17 +10,6 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:gravity="right" >
-
-        <Button
-            android:id="@+id/capture_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:layout_marginBottom="10dp"
-            android:background="@drawable/capture_button"
-            android:text="" >
-
-</Button>
     </RelativeLayout>
 </FrameLayout>
 
