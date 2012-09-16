@@ -58,7 +58,7 @@ JNIEXPORT void JNICALL Java_com_hivemind_chroma_Vision_yuv2rgb(
 	(*env)->ReleaseByteArrayElements(env, yuv, src_buf, JNI_ABORT); //Not using extreme care
 }
 
-JNIEXPORT void JNICALL Java_com_hivemind_chroma_CBFilter_filterRedGreen(
+JNIEXPORT void JNICALL Java_com_hivemind_chroma_CBFilter_filterRedGreenTwo(
 	JNIEnv *env, jobject this, jintArray data, jintArray filtered, jint width, jint height)
 {
 	jint *dest_buf = (*env)->GetIntArrayElements(env, filtered, NULL);
@@ -71,31 +71,9 @@ JNIEXPORT void JNICALL Java_com_hivemind_chroma_CBFilter_filterRedGreen(
 		int g = (src_buf[i] >> 8) & 0xFF;
 		int b = (src_buf[i]) & 0xFF;
 
-        //f_rgb2hsl(r, g, b, &h, &s, &l);
-        int h = get_h(r, g, b);
-        int difference = MIN(ABS(206 - h), ABS(-50 - h));
-        int h_new = (206 - difference * 185 / 256) % 256;
-        int shift = h_new - h;
-        //h = h_new;
-
-        //int r_ = 0, g_ = 0, b_ = 0;
-        //r_ = r, g_ = g, b_ = b;
-        hueshift(&r, &g, &b, -1*360*(h_new - h) / 256);
-
-        if (r < 0)   r = 0;
-        if (g < 0)   g = 0;
-        if (b < 0)   b = 0;
-        if (r > 255) r = 255;
-        if (g > 255) g = 255;
-        if (b > 255) b = 255;
-        /*
-
-
         int h = 0, s = 0, l = 0;
 
         rgb2hsl(r, g, b, &h, &s, &l);
-
-        //dest_buf[i] = 0xFFFFFF;
         
         if (h >= 120 && h < 140 || h <= 215 && h > 190)
         {
@@ -109,10 +87,42 @@ JNIEXPORT void JNICALL Java_com_hivemind_chroma_CBFilter_filterRedGreen(
 
 
 
-        hsl2rgb(h, s, l, &r, &g, &b);*/
+        hsl2rgb(h, s, l, &r, &g, &b);
 
         dest_buf[i] = 0xFF000000 | (r << 16) | (g << 8) | (b);
         //dest_buf[i] = 0xFFFFFFFF;
+	}
+	(*env)->ReleaseIntArrayElements(env, filtered, dest_buf, 0);
+	(*env)->ReleaseIntArrayElements(env, data, src_buf, JNI_ABORT);
+}
+
+JNIEXPORT void JNICALL Java_com_hivemind_chroma_CBFilter_filterRedGreen(
+	JNIEnv *env, jobject this, jintArray data, jintArray filtered, jint width, jint height)
+{
+	jint *dest_buf = (*env)->GetIntArrayElements(env, filtered, NULL);
+	jint *src_buf = (*env)->GetIntArrayElements(env, data, NULL);
+
+	int i;
+	for (i = 0; i < width * height; i++)
+	{
+		int r = (src_buf[i] >> 16) & 0xFF;
+		int g = (src_buf[i] >> 8) & 0xFF;
+		int b = (src_buf[i]) & 0xFF;
+
+        int h = get_h(r, g, b);
+        int difference = MIN(ABS(206 - h), ABS(-50 - h));
+        int h_new = (206 - difference * 185 / 256) % 256;
+
+        hueshift(&r, &g, &b, -1*360*(h_new - h) / 256);
+
+        if (r < 0)   r = 0;
+        if (g < 0)   g = 0;
+        if (b < 0)   b = 0;
+        if (r > 255) r = 255;
+        if (g > 255) g = 255;
+        if (b > 255) b = 255;
+
+        dest_buf[i] = 0xFF000000 | (r << 16) | (g << 8) | (b);
 	}
 	(*env)->ReleaseIntArrayElements(env, filtered, dest_buf, 0);
 	(*env)->ReleaseIntArrayElements(env, data, src_buf, JNI_ABORT);
