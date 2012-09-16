@@ -7,11 +7,13 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.ImageFormat;
+import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.hardware.Camera.PreviewCallback;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -63,7 +65,7 @@ public class MainPane extends Activity {
         surfaceHolder = surface.getHolder();
         surfaceHolder.addCallback(surfaceCallback);
         
-       Toast.makeText(MainPane.this, "first toast", Toast.LENGTH_LONG).show();
+       //Toast.makeText(MainPane.this, "first toast", Toast.LENGTH_LONG).show();
     }
     
 
@@ -157,9 +159,6 @@ public class MainPane extends Activity {
     			
     			if (maxSize != null && minSize != null) {
     				param.setPreviewSize(maxSize.width, maxSize.height);
-    				//param.setPictureSize(minSize.width, minSize.height);
-    				cam.setDisplayOrientation(90);
-    				//param.setPreviewFormat(ImageFormat.RGB_565);
     				cam.setParameters(param);
     				isCameraConfigured = true;
     			}
@@ -171,7 +170,8 @@ public class MainPane extends Activity {
     	if (cam != null && isCameraConfigured) {
     		frame = Bitmap.createBitmap(cam.getParameters().getPreviewSize().width,
     				cam.getParameters().getPreviewSize().height, Bitmap.Config.ARGB_8888);
-    		
+    		surfaceHolder.setFormat(PixelFormat.RGBA_8888 | PixelFormat.OPAQUE);
+    		//Toast.makeText(MainPane.this, getWindowManager().getDefaultDisplay().getPixelFormat() + ", Toast.LENGTH_LONG).show();
 			cam.setPreviewCallback(new PreviewCallback() {
 				public void onPreviewFrame(byte[] data, Camera camera) {
                     int width = camera.getParameters().getPreviewSize().width;
@@ -180,10 +180,11 @@ public class MainPane extends Activity {
                     int[] filteredData = new int[width * height];
 
                     Vision.yuv4202rgb(rgbData, data, width, height);
-                   // Vision.rgb5652rgb8888(rgbData, filteredData, width, height);
+                    CBFilter.filter(rgbData, filteredData, width, height);
+                    //Toast.makeText(MainPane.this, "filtered", Toast.LENGTH_LONG).show();
                     //CBFilter.filterRedGreen(rgbData, filteredData, width, height);
                     //CBSimulator.simDeuteranopia(filteredData, width, height);
-                    frame.setPixels(rgbData, 0, width, 0, 0, width, height);
+                    frame.setPixels(filteredData, 0, width, 0, 0, width, height);
                     if (surfaceHolder.getSurface().isValid()) {
                     	Canvas c = surfaceHolder.lockCanvas();
                     	c.drawBitmap(frame, 0, 0, null);
