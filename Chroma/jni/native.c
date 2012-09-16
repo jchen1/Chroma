@@ -12,6 +12,46 @@ void hsl2rgb(int h, int s, int l, int* r, int* g, int* b);
 void rgb2hsl(int r, int g, int b, int* h, int* s, int* l);
 void clamp(int* x, int min, int max);
 
+JNIEXPORT void JNICALL Java_com_hivemind_chroma_Vision_yuv2rgb(
+	JNIEnv *env, jobject this, jintArray rgb, jbyteArray yuv, jint width, jint height)
+{
+	jint *dest_buf = (*env)->GetIntArrayElements(env, rgb, NULL);
+	jbyte *src_buf = (*env)->GetByteArrayElements(env, yuv, NULL);
+
+	int j, yp;
+	for (j = 0, yp = 0; j < height; j++)
+	{
+		int uvp = width * height + (j >> 1) * width, u = 0, v = 0;
+		int i;
+		for (i = 0; i < width; i++, yp++)
+		{
+			int y = (0xFF & ((int) src_buf[yp])) - 16;
+			if (y < 0) y = 0;
+			if ((i & 1) == 0)
+			{
+				v = (0xFF & src_buf[uvp++]) - 128;
+				u = (0xFF & src_buf[uvp++]) - 128;
+			}
+			y *= 75;
+
+			int rtmp = y + 102 * v;
+			int gtmp = y - 25 * u - 52 * v;
+			int btmp = y + 129 * u;
+
+			int r = (rtmp >> 6);
+			int g = (gtmp >> 6);
+			int b = (btmp >> 6);
+
+			clamp(&r, 0, 255);
+			clamp(&g, 0, 255);
+			clamp(&b, 0, 255);
+
+			dest_buf[yp] = (0xFF000000) | (r << 16) | (g << 8) | b;
+		}
+	}
+	(*env)->ReleaseIntArrayElements(env, rgb, dest_buf, 0);
+	(*env)->ReleaseByteArrayElements(env, yuv, src_buf, JNI_ABORT); //Not using extreme care
+}
 
 JNIEXPORT void JNICALL Java_com_hivemind_chroma_CBFilter_filterRedGreen(
 	JNIEnv *env, jobject this, jintArray data, jintArray filtered, jint width, jint height)
@@ -48,7 +88,7 @@ JNIEXPORT void JNICALL Java_com_hivemind_chroma_CBFilter_filterRedGreen(
         //dest_buf[i] = 0xFFFFFFFF;
 	}
 	(*env)->ReleaseIntArrayElements(env, filtered, dest_buf, 0);
-	//(*env)->ReleaseIntArrayElements(env, data, src_buf, 0);
+	(*env)->ReleaseIntArrayElements(env, data, src_buf, JNI_ABORT);
 }
 
 void hsl2rgb(int h, int s, int l, int* r, int* g, int*b)
@@ -125,5 +165,5 @@ void rgb2hsl(int r, int g, int b, int* h, int* s, int* l)
 
 void clamp(int* x, int min, int max)
 {
-	x = MAX(min, MIN(x, max));
+	*x = MAX(min, MIN(*x, max));
 }

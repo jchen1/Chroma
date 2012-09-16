@@ -179,7 +179,7 @@ public class MainPane extends Activity {
 					int[] rgbData = new int[width * height];
                     int[] filteredData = new int[width * height];
 
-                    Vision.yuv4202rgb(rgbData, data, width, height);
+                    Vision.yuv2rgb(rgbData, data, width, height);
                     //CBFilter.filter(rgbData, filteredData, width, height);
                     //Toast.makeText(MainPane.this, "filtered", Toast.LENGTH_LONG).show();
                     CBFilter.filterRedGreen(rgbData, filteredData, width, height);

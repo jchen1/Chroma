@@ -3,6 +3,11 @@ package com.hivemind.chroma;
 //Vision helper library
 public class Vision {
 
+	static{
+		System.loadLibrary("native");
+	}
+	
+	static public native void yuv2rgb(int[] rgb, byte[] yuv, int width, int height);
     //Converts an array from YUV420 into RGB and stores it in rgb[]
 	static public void yuv4202rgb(int[] rgb, byte[] yuv420sp, int width, int height) {
         final int frameSize = width * height;
