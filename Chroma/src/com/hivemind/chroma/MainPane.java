@@ -67,26 +67,30 @@ public class MainPane extends Activity {
 
 	@Override
 	public boolean dispatchTouchEvent(MotionEvent event){
-		//Toast.makeText(MainPane.this, "tap works!!!", Toast.LENGTH_SHORT).show();
-		switch(current_filter){
-		case 1:
-			current_filter= DEUTERANOPIA_NORM;
-			break;
-		case 2:
-			current_filter= DEUTERANOPIA;
-			break;
-		case 3:
-			current_filter= TRITANOPIA_NORM;
-			break;
-		case 4:
-			current_filter= TRITANOPIA;
-			break;
-		default:
-			break;
+		if(event.getActionMasked() == 0x00000000){
+			switch(current_filter){
+			case 1:
+				current_filter= DEUTERANOPIA_NORM;
+				Toast.makeText(MainPane.this, "Normal View", Toast.LENGTH_SHORT).show();
+				break;
+			case 2:
+				current_filter= DEUTERANOPIA;
+				Toast.makeText(MainPane.this, "Deuteranopia Filter On", Toast.LENGTH_SHORT).show();
+				break;
+			case 3:
+				current_filter= TRITANOPIA_NORM;
+				Toast.makeText(MainPane.this, "Normal View", Toast.LENGTH_SHORT).show();
+				break;
+			case 4:
+				current_filter= TRITANOPIA;
+				Toast.makeText(MainPane.this, "Tritanopia Filter On", Toast.LENGTH_SHORT).show();
+				break;
+			default:
+				return false;
+			}
 		}
 
-		//super.dispatchTouchEvent(event);
-		return false;
+		return true;
 	}
 
 	@Override
@@ -118,12 +122,12 @@ public class MainPane extends Activity {
 		case R.id.deuteranopia:
 			//makes filter deuteranopia/normal
 			current_filter = DEUTERANOPIA;
-			//Toast.makeText(MainPane.this, "deut menu works!!!", Toast.LENGTH_SHORT).show();
+			Toast.makeText(MainPane.this, "Deuteranopia Mode", Toast.LENGTH_SHORT).show();
 			break;
 		case R.id.tritanopia:
 			//makes filter tritanopia/normal
 			current_filter = TRITANOPIA;
-			//Toast.makeText(MainPane.this, "trit menu works!!!", Toast.LENGTH_SHORT).show();
+			Toast.makeText(MainPane.this, "Tritanopia Mode", Toast.LENGTH_SHORT).show();
 			break;
 		default:
 			return false;
@@ -235,14 +239,16 @@ public class MainPane extends Activity {
 
 					switch(current_filter){
 					case DEUTERANOPIA:
-						Toast.makeText(MainPane.this, "deut on", Toast.LENGTH_SHORT).show();
+						Toast.makeText(MainPane.this, "Deuteranopia Mode", Toast.LENGTH_SHORT).show();
 						CBFilter.filterRedGreen(rgbData,filteredData, width, height);
 						break;
 					case TRITANOPIA:
-						Toast.makeText(MainPane.this, "tri on", Toast.LENGTH_SHORT).show();
+						Toast.makeText(MainPane.this, "Tritanopia Mode", Toast.LENGTH_SHORT).show();
 						break;
 					default:
+						Toast.makeText(MainPane.this, "normal filter on", Toast.LENGTH_SHORT).show();
 						filteredData = rgbData;
+						break;
 					}
 					//CBSimulator.simDeuteranopia(filteredData, width, height);
 					frame.setPixels(filteredData, 0, width, 0, 0, width, height);
